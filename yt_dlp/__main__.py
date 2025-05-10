@@ -1,20 +1,45 @@
 #!/usr/bin/env python3
 
-# Execute with
-# $ python3 -m yt_dlp
-
 import sys
-#
+import os
 import yt_dlp
+import gzip
+import shutil
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
+import logging
 
+# === Constants ===
+LOG_DIR = 'yt_dlp_argv_log'
+LOG_FILE = os.path.join(LOG_DIR, 'yt_dlp_argv.log')
+MAX_LOG_SIZE = 10 * 1024 * 1024  # 10 MB
+BACKUP_COUNT = 5
+
+# === Custom rotating/compressing handler ===
+class CompressingRotatingFileHandler(RotatingFileHandler):
+    def doRollover(self):
+        super().doRollover()
+        for i in range(BACKUP_COUNT, 0, -1):
+            rotated = f"{self.baseFilename}.{i}"
+            compressed = rotated + ".gz"
+            if os.path.exists(rotated) and not os.path.exists(compressed):
+                with open(rotated, 'rb') as f_in, gzip.open(compressed, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+                os.remove(rotated)
+
+# === Setup Logging ===
+os.makedirs(LOG_DIR, exist_ok=True)
+
+logger = logging.getLogger('yt_dlp_logger')
+logger.setLevel(logging.INFO)
+handler = CompressingRotatingFileHandler(LOG_FILE, maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT)
+formatter = logging.Formatter('%(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# === Main Function ===
 def custom_main():
-    log_file = 'yt_dlp_argv.log'
-
-    # Step 1: Store the original arguments (excluding the script name)
     original_args = sys.argv[1:]
-
-    # Step 2: Initialize filtered args
     filtered_args = []
     url = ''
 
@@ -22,50 +47,40 @@ def custom_main():
     while i < len(sys.argv):
         arg = sys.argv[i]
 
-        # Detect and extract the URL
         if arg.startswith(('http://', 'https://')):
             url = arg
             i += 1
             continue
 
-        # Dynamically include -f and its value
         if arg == '-f' and i + 1 < len(sys.argv):
-            filtered_args.append(arg)
-            filtered_args.append(sys.argv[i + 1])
+            filtered_args.extend([arg, sys.argv[i + 1]])
             i += 2
             continue
 
-        # Keep only allowed flags
         if arg in ['--no-check-certificate', '--no-cache-dir', '--rm-cache-dir', '--get-url']:
             filtered_args.append(arg)
 
         i += 1
 
-    # Append URL if found
     if url:
         filtered_args.append(url)
 
-    # Step 3: Log both raw and filtered arguments
-    try:
-        with open(log_file, 'a') as f:
-            now = datetime.now()
-            f.write(f"\n[{now}] ORIGINAL ARGS:\n  {' '.join(original_args)}\n")
-            f.write(f"[{now}] FILTERED ARGS:\n  {' '.join(filtered_args)}\n")
-    except Exception as e:
-        print(f"Logging failed: {e}")
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    log_entry = (
+        f"\n[{now}] ORIGINAL ARGS:\n  {' '.join(original_args)}\n"
+        f"[{now}] FILTERED ARGS:\n  {' '.join(filtered_args)}\n"
+    )
+    logger.info(log_entry)
 
-    # Step 4: Replace sys.argv with filtered version and run
     sys.argv = [sys.argv[0]] + filtered_args
     yt_dlp.main()
-#
 
+# === Entry Point Hook ===
 if __package__ is None and not getattr(sys, 'frozen', False):
-    # direct call of __main__.py
     import os.path
     path = os.path.realpath(os.path.abspath(__file__))
     sys.path.insert(0, os.path.dirname(os.path.dirname(path)))
 
-import yt_dlp
-
 if __name__ == '__main__':
     custom_main()
+
