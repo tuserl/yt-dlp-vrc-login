@@ -9,35 +9,54 @@ import yt_dlp
 from datetime import datetime
 
 def custom_main():
-    # Initialize URL to an empty string
+    log_file = 'yt_dlp_argv.log'
+
+    # Step 1: Store the original arguments (excluding the script name)
+    original_args = sys.argv[1:]
+
+    # Step 2: Initialize filtered args
+    filtered_args = []
     url = ''
 
-    # Iterate through sys.argv and find any URL (if any)
-    for i, arg in enumerate(sys.argv):
-        if arg.startswith(('https://', 'http://')):  # Check for any URL
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+
+        # Detect and extract the URL
+        if arg.startswith(('http://', 'https://')):
             url = arg
-            # Remove the URL from sys.argv to prevent duplication
-            sys.argv.pop(i)
-            break
+            i += 1
+            continue
 
-    # Define the fixed arguments you want to keep
-    filtered_args = [
-        '--no-check-certificate',
-        '--no-cache-dir',
-        '--rm-cache-dir',
-        '-f', '(mp4/best)[height<=?360][height>=?64][width>=?64]',
-        '--get-url',
-    ]
+        # Dynamically include -f and its value
+        if arg == '-f' and i + 1 < len(sys.argv):
+            filtered_args.append(arg)
+            filtered_args.append(sys.argv[i + 1])
+            i += 2
+            continue
 
-    # Append the URL if it was found
+        # Keep only allowed flags
+        if arg in ['--no-check-certificate', '--no-cache-dir', '--rm-cache-dir', '--get-url']:
+            filtered_args.append(arg)
+
+        i += 1
+
+    # Append URL if found
     if url:
         filtered_args.append(url)
 
-    sys.argv = filtered_args  # Update sys.argv with the filtered arguments
+    # Step 3: Log both raw and filtered arguments
+    try:
+        with open(log_file, 'a') as f:
+            now = datetime.now()
+            f.write(f"\n[{now}] ORIGINAL ARGS:\n  {' '.join(original_args)}\n")
+            f.write(f"[{now}] FILTERED ARGS:\n  {' '.join(filtered_args)}\n")
+    except Exception as e:
+        print(f"Logging failed: {e}")
 
-    # Call yt-dlp with filtered arguments
+    # Step 4: Replace sys.argv with filtered version and run
+    sys.argv = [sys.argv[0]] + filtered_args
     yt_dlp.main()
-
 #
 
 if __package__ is None and not getattr(sys, 'frozen', False):
