@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+from datetime import datetime
+import logging
+
+if __package__ is None and not getattr(sys, 'frozen', False):
+    import os.path
+    path = os.path.realpath(os.path.abspath(__file__))
+    sys.path.insert(0, os.path.dirname(os.path.dirname(path)))
+
+import yt_dlp
+from yt_dlp import YoutubeDL
+
+# === Setup logging ===
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+log_file = f'yt-dlp-log-{timestamp}.txt'
+logging.basicConfig(
+    filename=log_file,
+    filemode='w',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+logging.info(f"Full command: {' '.join(sys.argv)}")
+
+# === Argument parsing ===
+import argparse
+
+parser = argparse.ArgumentParser(description='Restricted yt-dlp')
+parser.add_argument('url', nargs='?', help='Video URL')
+parser.add_argument('--cookies', dest='cookiefile', metavar='FILE', help='Cookies file')
+
+args, unknown_args = parser.parse_known_args()
+
+if unknown_args:
+    logging.warning(f"Ignored arguments: {' '.join(unknown_args)}")
+
+# === Run yt-dlp ===
+ydl_opts = {}
+if args.cookiefile:
+    ydl_opts['cookiefile'] = args.cookiefile
+
+if not args.url:
+    logging.error("No URL provided")
+    print("Error: No URL provided.")
+    sys.exit(1)
+
+try:
+    with YoutubeDL(ydl_opts) as ydl:
+        result = ydl.download([args.url])
+        logging.info(f"Download result: {result}")
+except Exception as e:
+    logging.error("An error occurred", exc_info=True)
+    print("An error occurred during download. See log file for details.")
+    sys.exit(1)
+
