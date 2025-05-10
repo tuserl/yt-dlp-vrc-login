@@ -1,0 +1,1 @@
+[2025-05-10T16:23:38.084398] --no-check-certificate --no-cache-dir --rm-cache-dir -f (mp4/best)[height<=?360][height>=?64][width>=?64] --get-url https://www.youtube.com/watch?v=UMaWjogjOw4

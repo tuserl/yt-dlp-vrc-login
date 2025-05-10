@@ -1,0 +1,1 @@
+-f bestvideo[height<=720]+bestaudio --merge-output-format mp4 --cookies "%LOCALAPPDATA%\..\LocalLow\VRChat\VRChat\Tools\cookies.txt"

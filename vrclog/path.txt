@@ -1,0 +1,3 @@
+F:\SteamLibrary\steamapps\common\VRChat
+"%LOCALAPPDATA%\..\LocalLow\VRChat\VRChat\Tools\"
+
