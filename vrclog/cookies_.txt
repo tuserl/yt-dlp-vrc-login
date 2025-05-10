@@ -1,0 +1,2 @@
+yt-dlp support Netscape HTTP Cookie File
+places this cookies.txt and conf file inside tool path
