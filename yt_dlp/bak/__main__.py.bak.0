@@ -8,7 +8,6 @@ import shutil
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 import logging
-import re
 
 # === Constants ===
 LOG_DIR = 'yt_dlp_argv_log'
@@ -38,24 +37,6 @@ formatter = logging.Formatter('%(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# === Function to Modify height<=?random_number Filter and Force video format to webm ===
-def modify_resolution_filters(args):
-    """
-    Modify height<=?random_number to height<=?4320,
-    and replace any (xxx/best) with (webm/best) in format filters.
-    """
-    def fix_height(text):
-        return re.sub(r'height<=\?\d+', r'height<=?4320', text)
-
-    def replace_format(text):
-        return re.sub(r'\(\w+/best\)', r'(webm/best)', text)
-
-    for i in range(len(args)):
-        args[i] = fix_height(args[i])
-        args[i] = replace_format(args[i])
-
-    return args
-
 # === Main Function ===
 def custom_main():
     original_args = sys.argv[1:]
@@ -84,7 +65,6 @@ def custom_main():
     if url:
         filtered_args.append(url)
 
-    # Log the original arguments
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     log_entry = (
         f"\n[{now}] ORIGINAL ARGS:\n  {' '.join(original_args)}\n"
@@ -92,15 +72,7 @@ def custom_main():
     )
     logger.info(log_entry)
 
-    # Modify the resolution filters
-    custom_filtered_args = modify_resolution_filters(filtered_args)
-
-    # Log the custom filtered arguments
-    log_entry_custom = f"[{now}] CUSTOM FILTERED ARGS:\n  {' '.join(custom_filtered_args)}\n"
-    logger.info(log_entry_custom)
-
-    # Update sys.argv with the custom filtered arguments
-    sys.argv = [sys.argv[0]] + custom_filtered_args
+    sys.argv = [sys.argv[0]] + filtered_args
     yt_dlp.main()
 
 # === Entry Point Hook ===
