@@ -18,7 +18,14 @@ New-Item -ItemType Directory -Path $targetExeDir -Force | Out-Null
 # Step 3: Copy main script
 Copy-Item -Path "automovefiletovrc.ps1" -Destination $zipFolder -Force
 
-# Step 4: Copy yt-dlp.exe into ytnew/
+# Step 4: Copy manual.txt as README.txt
+if (Test-Path "manual.txt") {
+    Copy-Item -Path "manual.txt" -Destination (Join-Path $zipFolder "README.txt") -Force
+} else {
+    Write-Warning "⚠️ manual.txt not found. Skipping README.txt"
+}
+
+# Step 5: Copy yt-dlp.exe into ytnew/
 if (Test-Path $sourceExe) {
     Copy-Item -Path $sourceExe -Destination $targetExe -Force
 } else {
@@ -26,16 +33,16 @@ if (Test-Path $sourceExe) {
     exit 1
 }
 
-# Step 5: Remove old zip if exists
+# Step 6: Remove old zip if exists
 if (Test-Path $zipFile) {
     Remove-Item $zipFile -Force
 }
 
-# Step 6: Create zip archive inside ytnew/
+# Step 7: Create zip archive inside ytnew/
 Compress-Archive -Path "$zipFolder\*" -DestinationPath $zipFile
 Write-Host "✅ Created zip: $zipFile"
 
-# Step 7: Delete temp folder
+# Step 8: Delete temp folder
 Remove-Item -Recurse -Force $zipFolder
 Write-Host "🧹 Deleted temp folder: $zipFolder"
 
