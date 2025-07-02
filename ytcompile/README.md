@@ -1,0 +1,1 @@
+run autocompile.ps1

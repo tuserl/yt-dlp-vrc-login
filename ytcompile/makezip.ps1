@@ -1,6 +1,6 @@
 # Output folder and zip file name
 $zipFolder = "yt-dlp-vrc-login-zip"
-$zipFile = "yt-dlp-vrc-login.zip"
+$zipFile = "ytnew/yt-dlp-vrc-login.zip"
 
 # Paths
 $sourceExe = "ytnew\yt-dlp.exe"
@@ -31,7 +31,7 @@ if (Test-Path $zipFile) {
     Remove-Item $zipFile -Force
 }
 
-# Step 6: Create zip archive
+# Step 6: Create zip archive inside ytnew/
 Compress-Archive -Path "$zipFolder\*" -DestinationPath $zipFile
 Write-Host "✅ Created zip: $zipFile"
 
