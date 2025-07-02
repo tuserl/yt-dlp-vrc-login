@@ -28,12 +28,13 @@ if (Test-Path $oldPath) {
     Write-Host "ℹ️ No existing yt-dlp.exe to rename"
 }
 
-# Step 2: Restore backup as yt-dlp.exe
-if (Test-Path $bakBase) {
-    Copy-Item -Path $bakBase -Destination $oldPath -Force
-    Write-Host "🔁 Copied backup back to yt-dlp.exe"
+# Step 2: Move the file .\ytnew\yt-dlp.exe to the target destination, overwriting if exists
+$newExePath = ".\ytnew\yt-dlp.exe"
+if (Test-Path $newExePath) {
+    Move-Item -Path $newExePath -Destination $oldPath -Force
+    Write-Host "✅ Moved yt-dlp.exe to $oldPath"
 } else {
-    Write-Warning "❌ Backup file not found: $bakBase"
+    Write-Warning "⚠️ File not found: $newExePath"
 }
 
 # Step 3: Set yt-dlp.exe to read-only and set integrity level
