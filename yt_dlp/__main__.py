@@ -54,6 +54,16 @@ def modify_resolution_filters(args):
         args[i] = fix_height(args[i])
         args[i] = replace_format(args[i])
 
+    # Remove specific transformed format value if present => --no-cache-dir ...
+    i = 0
+    while i < len(args):
+        if args[i] in ['-f', '--format']:
+            if i + 1 < len(args):
+                if args[i + 1] == '(webm/best)[height<=?4320][height>=?64][width>=?64]':
+                    del args[i:i+2]
+                    continue  # don't increment i, next item shifted in
+        i += 1
+
     return args
 
 # === Main Function ===
