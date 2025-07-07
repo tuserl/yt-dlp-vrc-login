@@ -71,18 +71,13 @@ def custom_main():
             i += 1
             continue
 
-#        if arg == '-f' and i + 1 < len(sys.argv):
-#            filtered_args.extend([arg, sys.argv[i + 1]])
-#            i += 2
-#            continue
+        if arg == '-f' and i + 1 < len(sys.argv):
+            filtered_args.extend([arg, sys.argv[i + 1]])
+            i += 2
+            continue
 
         if arg in ['--no-check-certificate', '--no-cache-dir', '--rm-cache-dir', '--get-url']:
             filtered_args.append(arg)
-
-        if arg in ['-f', '--format', '-o', '--output']:
-            if i + 1 < len(sys.argv):
-                filtered_args.extend([arg, sys.argv[i + 1]])
-                i += 1  # skip the value next loop
 
         i += 1
 

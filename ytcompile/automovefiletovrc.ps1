@@ -42,7 +42,7 @@ Set-ItemProperty -Path $oldPath -Name IsReadOnly -Value $true
 icacls $oldPath /setintegritylevel medium | Out-Null
 
 # Step 4: Create yt-dlp.conf with Firefox cookie support
-$confLine = "--cookies-from-browser firefox"
+$confLine = "--cookies-from-browser firefox -f ""(mp4/best)[height<=?1080][height>=?64]"""
 Set-Content -Path $configPath -Value $confLine -Force
 Write-Host "📝 Created yt-dlp.conf with: $confLine"
 
